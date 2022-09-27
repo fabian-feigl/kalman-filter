@@ -10,6 +10,11 @@ KalmanFilter::KalmanFilter(Matrix<float> initial_guess_system,
       predicted_uncertainty(initial_guess_uncertainty) {
 
   std::cout << "Initalized Kalman Filter" << std::endl;
+
+  measurement_uncertainty_matrix(0, 0) = variance_measurement_distance;
+  observation_matrix(0, 0) = 1;
+  use_constant_velocity();
+  predict();
 }
 
 void KalmanFilter::use_constant_velocity() {
@@ -26,6 +31,9 @@ void KalmanFilter::use_constant_velocity() {
   process_noise_matrix(1, 0) = std::pow(delta_time, 3) / 2;
   process_noise_matrix(1, 1) = std::pow(delta_time, 2);
   process_noise_matrix = process_noise_matrix * variance_acceleration;
+
+  identity_matrix(0, 0) = 1.0;
+  identity_matrix(1, 1) = 1.0;
 }
 
 void KalmanFilter::extrapolate_state() {
@@ -33,7 +41,7 @@ void KalmanFilter::extrapolate_state() {
       state_transition_matrix * estimated_system_state_vector +
       control_matrix * control_input + process_noise;
 
-  std::cout << "Got new predicted system state vector "
+  std::cout << "Got new predicted system state vector \n"
             << predicted_system_state_vector.print() << std::endl;
   return;
 }
@@ -43,8 +51,51 @@ void KalmanFilter::extrapolate_uncertainty() {
                               state_transition_matrix.transpose() +
                           process_noise_matrix;
 
-  std::cout << "Got new uncertainty system state vector "
+  std::cout << "Got new uncertainty system state vector \n"
             << predicted_uncertainty.print() << std::endl;
+  return;
+}
+
+void KalmanFilter::calculate_measurement(Matrix<float> measurement_value) {
+
+  measurement_vector =
+      observation_matrix * measurement_value + random_noise_vector;
+  std::cout << "Calculate measurement \n"
+            << measurement_vector.print() << std::endl;
+  return;
+}
+
+void KalmanFilter::calculate_kalman_gain() {
+
+  Matrix<float> observation_matrix_transposed = observation_matrix.transpose();
+  kalman_gain = predicted_uncertainty * observation_matrix_transposed *
+                (observation_matrix * predicted_uncertainty *
+                     observation_matrix_transposed +
+                 measurement_uncertainty_matrix)
+                    .inverse();
+  std::cout << "Calculate kalman gain \n" << kalman_gain.print() << std::endl;
+  return;
+}
+
+void KalmanFilter::update_estimate() {
+
+  estimated_system_state_vector =
+      predicted_system_state_vector +
+      kalman_gain * (measurement_vector -
+                     observation_matrix * predicted_system_state_vector);
+  std::cout << "update estimate \n"
+            << estimated_system_state_vector.print() << std::endl;
+  return;
+}
+
+void KalmanFilter::update_estimate_uncertainty() {
+  estimated_uncertainty =
+      (identity_matrix - kalman_gain * observation_matrix) *
+          predicted_uncertainty *
+          (identity_matrix - kalman_gain * observation_matrix).transpose() +
+      kalman_gain * measurement_uncertainty_matrix * kalman_gain.transpose();
+  std::cout << "update estimate uncertainty \n"
+            << estimated_uncertainty.print() << std::endl;
   return;
 }
 
@@ -52,4 +103,17 @@ void KalmanFilter::predict() {
   extrapolate_state();
   extrapolate_uncertainty();
   return;
+}
+
+void KalmanFilter::update() {
+  calculate_kalman_gain();
+  update_estimate();
+  update_estimate_uncertainty();
+  return;
+}
+
+void KalmanFilter::tick(Matrix<float> measurement_value) {
+  calculate_measurement(measurement_value);
+  update();
+  predict();
 }

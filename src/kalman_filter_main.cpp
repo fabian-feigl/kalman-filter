@@ -14,10 +14,10 @@ int main(int argc, char *argv[]) {
 
   Filter::KalmanFilter kalman_filter(initial_guess_system,
                                      initial_guess_uncertainty);
-  kalman_filter.use_constant_velocity();
-  kalman_filter.predict();
-  kalman_filter.predict();
 
-  std::cout << kalman_filter.state_transition_matrix.print();
-  std::cout << kalman_filter.state_transition_matrix.transpose().print();
+  Matrix<float> measurement = Matrix<float>(2, 1);
+  measurement(0, 0) = -393.66;
+  kalman_filter.tick(measurement);
+  measurement(0, 0) = -375.93;
+  kalman_filter.tick(measurement);
 }
