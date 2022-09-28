@@ -1,3 +1,5 @@
+#pragma once
+
 #include <exception>
 #include <iostream>
 #include <string>
@@ -9,6 +11,7 @@ private:
   unsigned int dimx_, dimy_;
 
 public:
+  Matrix() {}
   Matrix(unsigned int dimx, unsigned int dimy) : dimx_(dimx), dimy_(dimy) {
     inner_.resize(dimx_ * dimy_);
   }
@@ -155,6 +158,9 @@ public:
     }
   }
 
+  int get_x_dimension() { return dimx_; }
+  int get_y_dimension() { return dimy_; }
+
   std::string print() {
     std::string out;
     for (int i = 0; i < dimx_; i++) {
@@ -171,4 +177,13 @@ public:
     out = std::to_string(dimx_) + " x " + std::to_string(dimy_);
     return out;
   }
+};
+
+template <typename T> class IdentityMatrix : public Matrix<T> {
+public:
+  IdentityMatrix(unsigned int dimension) : Matrix<T>(dimension, dimension) {
+    for (int i = 0; i < this->get_x_dimension(); i++) {
+      (*this)(i, i) = 1;
+    }
+  };
 };

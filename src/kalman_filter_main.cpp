@@ -1,4 +1,6 @@
 #include "kalman_filter.h"
+
+#include <chrono>
 #include <iostream>
 #include <random>
 
@@ -31,7 +33,14 @@ std::vector<float> create_measurement_vector(int number_of_measurements,
 }
 
 int main(int argc, char *argv[]) {
+
+  float start_pose = 300.0;
+  float standard_deviation_measurement = 3.0;
+  int number_of_measurements = 10;
+
   std::cout << "Hello from Kalman Filter" << std::endl;
+  std::chrono::steady_clock::time_point start =
+      std::chrono::steady_clock::now();
 
   Matrix<float> initial_guess_system = Matrix<float>(2, 1);
   initial_guess_system(0, 0) = 0; // x pose
@@ -41,12 +50,17 @@ int main(int argc, char *argv[]) {
   initial_guess_uncertainty(0, 0) = 500;
   initial_guess_uncertainty(1, 1) = 500;
 
-  Filter::KalmanFilter kalman_filter(initial_guess_system,
+  Filter::MotionModelParameter *parameters = new Filter::MotionModelParameter();
+  parameters->delta_time = 1;
+  parameters->process_variance = 9;
+  parameters->system_states = 2;
+
+  std::unique_ptr<Filter::ConstantAcceleration> motion_model =
+      std::make_unique<Filter::ConstantAcceleration>(*parameters);
+
+  Filter::KalmanFilter kalman_filter(motion_model, initial_guess_system,
                                      initial_guess_uncertainty);
 
-  float start_pose = 300.0;
-  float standard_deviation_measurement = 3.0;
-  int number_of_measurements = 10;
   std::vector<float> measurements = create_measurement_vector(
       number_of_measurements, standard_deviation_measurement, start_pose);
   Matrix<float> measurement = Matrix<float>(2, 1);
@@ -68,4 +82,11 @@ int main(int argc, char *argv[]) {
     std::cout << "Distance measurement and estimate " << distance << std::endl;
     std::cout << std::endl << std::endl;
   }
+
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::cout << "Time difference = "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "[ms]" << std::endl;
 }

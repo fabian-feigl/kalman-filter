@@ -1,26 +1,32 @@
+#pragma once
+
 #include "matrix.h"
+#include "motion_model.h"
 #include <math.h>
+#include <memory>
 
 namespace Filter {
 
 class KalmanFilter {
 
+private:
+  std::unique_ptr<ConstantAcceleration> motion_model_;
+  unsigned int system_states_;
+
 public:
-  KalmanFilter(Matrix<float> initial_guess_system,
+  KalmanFilter(std::unique_ptr<ConstantAcceleration> &motion_model,
+               Matrix<float> initial_guess_system,
                Matrix<float> initial_guess_uncertainty);
   ~KalmanFilter(){};
-  void use_constant_velocity();
+  void set_motion_model(std::unique_ptr<ConstantAcceleration> &motion_model);
   void tick(Matrix<float> measurement_value);
   Matrix<float> get_estimate();
 
   Matrix<float> estimated_system_state_vector = Matrix<float>(2, 1);
   Matrix<float> predicted_system_state_vector = Matrix<float>(2, 1);
-  Matrix<float> control_matrix = Matrix<float>(2, 1);
-  Matrix<float> state_transition_matrix = Matrix<float>(2, 2);
 
   Matrix<float> estimated_uncertainty = Matrix<float>(2, 2);
   Matrix<float> predicted_uncertainty = Matrix<float>(2, 2);
-  Matrix<float> process_noise_matrix = Matrix<float>(2, 2);
 
   Matrix<float> measurement_uncertainty_matrix = Matrix<float>(1, 1);
   Matrix<float> observation_matrix = Matrix<float>(1, 2);
@@ -28,12 +34,12 @@ public:
 
   Matrix<float> kalman_gain = Matrix<float>(2, 1);
 
-  Matrix<float> identity_matrix = Matrix<float>(2, 2);
+  Matrix<float> identity_matrix = IdentityMatrix<float>(2);
 
   float process_noise = 0.0;
   float control_input = 0.0;
   float delta_time = 1;                       /// in seconds
-  float variance_velocity = std::pow(0.2, 2); // in m²/s^4
+  float variance_velocity = std::pow(0.1, 2); // in m²/s^4
   float random_noise_vector = 0.0;
   float variance_measurement_distance = 9; // in m²
 
