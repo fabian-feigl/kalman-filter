@@ -13,6 +13,15 @@ public:
     inner_.resize(dimx_ * dimy_);
   }
 
+  T get(unsigned int x, unsigned int y) {
+    if (x >= dimx_ || y >= dimy_)
+      throw std::out_of_range(
+          "matrix indices out of range. This x=" + std::to_string(dimx_) +
+          " and y=" + std::to_string(dimy_) + ". Requested x=" +
+          std::to_string(x) + " and y=" + std::to_string(y)); // ouch
+    return inner_[dimx_ * y + x];
+  }
+
   T &operator()(unsigned int x, unsigned int y) {
     if (x >= dimx_ || y >= dimy_)
       throw std::out_of_range(
@@ -23,39 +32,53 @@ public:
   }
 
   Matrix<T> operator+(T value) {
+    Matrix<T> matrix_out = Matrix<T>(dimx_, dimy_);
     for (int i = 0; i < dimx_; i++) {
       for (int j = 0; j < dimy_; j++) {
-        (*this)(i, j) += value;
+        matrix_out(i, j) = (*this)(i, j) + value;
       }
     }
-    return (*this);
+    return matrix_out;
+  }
+
+  Matrix<T> operator-(T value) {
+    Matrix<T> matrix_out = Matrix<T>(dimx_, dimy_);
+    for (int i = 0; i < dimx_; i++) {
+      for (int j = 0; j < dimy_; j++) {
+        matrix_out(i, j) = (*this)(i, j) + value;
+      }
+    }
+    return matrix_out;
   }
 
   Matrix<T> operator+(Matrix<T> other) {
+    Matrix<T> matrix_out = Matrix<T>(dimx_, dimy_);
     for (int i = 0; i < dimx_; i++) {
       for (int j = 0; j < dimy_; j++) {
-        (*this)(i, j) += other(i, j);
+        matrix_out(i, j) = (*this)(i, j) + other(i, j);
       }
     }
-    return (*this);
+    return matrix_out;
   }
 
   Matrix<T> operator-(Matrix<T> other) {
+    Matrix<T> matrix_out = Matrix<T>(dimx_, dimy_);
     for (int i = 0; i < dimx_; i++) {
       for (int j = 0; j < dimy_; j++) {
-        (*this)(i, j) -= other(i, j);
+        matrix_out(i, j) = (*this)(i, j) - other(i, j);
       }
     }
-    return (*this);
+    return matrix_out;
   }
 
   Matrix<T> operator*(T value) {
+    Matrix<T> matrix_out = Matrix<T>(dimx_, dimy_);
     for (int i = 0; i < dimx_; i++) {
       for (int j = 0; j < dimy_; j++) {
-        (*this)(i, j) = (*this)(i, j) * value;
+        matrix_out(i, j) = (*this)(i, j) * value;
       }
     }
-    return (*this);
+    return matrix_out;
   }
 
   Matrix<T> operator*(Matrix<T> other) {
