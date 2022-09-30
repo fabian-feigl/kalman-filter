@@ -34,28 +34,32 @@ std::vector<float> create_measurement_vector(int number_of_measurements,
 
 int main(int argc, char *argv[]) {
 
-  float start_pose = 300.0;
-  float standard_deviation_measurement = 3.0;
-  int number_of_measurements = 10;
-
   std::cout << "Hello from Kalman Filter" << std::endl;
   std::chrono::steady_clock::time_point start =
       std::chrono::steady_clock::now();
 
-  Matrix<float> initial_guess_system = Matrix<float>(2, 1);
-  initial_guess_system(0, 0) = 0; // x pose
-  initial_guess_system(1, 0) = 0; // x velocity
-
-  Matrix<float> initial_guess_uncertainty = Matrix<float>(2, 2);
-  initial_guess_uncertainty(0, 0) = 500;
-  initial_guess_uncertainty(1, 1) = 500;
+  float start_pose = 300.0;
+  float standard_deviation_measurement = 3.0;
+  int number_of_measurements = 10;
 
   Filter::MotionModelParameter *parameters = new Filter::MotionModelParameter();
   parameters->delta_time = 1;
-  parameters->process_variance = 9;
-  parameters->system_states = 2;
+  parameters->process_variance_acceleration = 9;
+  parameters->system_states = 3;
 
-  std::unique_ptr<Filter::ConstantAcceleration> motion_model =
+  Matrix<float> initial_guess_system =
+      Matrix<float>(parameters->system_states, 1);
+  initial_guess_system(0, 0) = 0;
+  initial_guess_system(1, 0) = 0;
+
+  Matrix<float> initial_guess_uncertainty =
+      Matrix<float>(parameters->system_states, parameters->system_states);
+
+  for (int i = 0; i < initial_guess_uncertainty.get_x_dimension(); i++) {
+    initial_guess_uncertainty(i, i) = 500;
+  }
+
+  std::unique_ptr<Filter::MotionModel> motion_model =
       std::make_unique<Filter::ConstantAcceleration>(*parameters);
 
   Filter::KalmanFilter kalman_filter(motion_model, initial_guess_system,
@@ -63,8 +67,8 @@ int main(int argc, char *argv[]) {
 
   std::vector<float> measurements = create_measurement_vector(
       number_of_measurements, standard_deviation_measurement, start_pose);
-  Matrix<float> measurement = Matrix<float>(2, 1);
-  Matrix<float> estimate = Matrix<float>(2, 1);
+  Matrix<float> measurement = Matrix<float>(parameters->system_states, 1);
+  Matrix<float> estimate = Matrix<float>(parameters->system_states, 1);
   float distance;
 
   for (int i = 0; i < measurements.size(); i++) {
@@ -89,4 +93,5 @@ int main(int argc, char *argv[]) {
                                                                      start)
                    .count()
             << "[ms]" << std::endl;
+  return 0;
 }
