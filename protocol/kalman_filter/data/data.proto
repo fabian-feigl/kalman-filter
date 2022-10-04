@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message XYPosition {
+  float x = 1;
+  float y = 2;
+}
+
+message Measurement { XYPosition position = 1; }
+message Estimate { XYPosition position = 1; }

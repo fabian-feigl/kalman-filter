@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message MotionModel {
+  enum Type {
+    CONSTANT_VELOCITY = 0;
+    CONSTANT_ACCELEARTION = 1;
+  }
+  Type motion_model_type = 1;
+  MotionModelParameters motion_model_parameters = 2;
+}
+
+message MotionModelParameters {
+  float delta_time = 1;                    // time between two measurements.
+  float process_variance_acceleration = 2; // variance in acceleration.
+  uint32 system_states = 3; // it is recommended to use 3 system states.
+}
