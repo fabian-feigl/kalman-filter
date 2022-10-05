@@ -108,7 +108,7 @@ configure_file(${PROJECT_SOURCE_DIR}/python/setup.py ${GENERATED_PY_DIR}/setup.p
 add_custom_command(
     OUTPUT ${OUTPUT}
     # Use Python script to generate __init__.py files recursively:
-    COMMAND python ${PROJECT_SOURCE_DIR}/python/create_package.py --package ${GENERATED_PY_DIR}/kalman_filter_proto
+    COMMAND python ${PROJECT_SOURCE_DIR}/python/create_package.py --package ${GENERATED_PY_DIR}
     COMMAND python ${PROJECT_SOURCE_DIR}/python/setup.py build
     COMMAND ${CMAKE_COMMAND} -E remove_directory dist
     COMMAND python ${PROJECT_SOURCE_DIR}/python/setup.py sdist
@@ -116,4 +116,4 @@ add_custom_command(
     WORKING_DIRECTORY ${GENERATED_PY_DIR}
 )
 
-add_custom_target(python_protocol ALL DEPENDS ${OUTPUT})
+#add_custom_target(python_protocol ALL DEPENDS ${OUTPUT})

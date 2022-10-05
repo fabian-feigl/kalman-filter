@@ -49,6 +49,7 @@ public:
   void set_measurement_variance(float variance_measurement_distance);
   Matrix<float> get_estimate();
   Matrix<float> get_estimate_uncertainty();
+  unsigned int get_system_states();
 
   float process_noise = 0.0;
   float control_input = 0.0;

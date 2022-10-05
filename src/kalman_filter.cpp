@@ -145,9 +145,14 @@ void KalmanFilter::update() {
 }
 
 void KalmanFilter::tick(Matrix<float> measurement_value) {
-  calculate_measurement(measurement_value);
-  update();
-  predict();
+
+  try {
+    calculate_measurement(measurement_value);
+    update();
+    predict();
+  } catch (std::out_of_range &e) {
+    std::cout << "Failed to tick: " << e.what() << std::endl;
+  }
 }
 
 Matrix<float> KalmanFilter::get_estimate() {
@@ -157,3 +162,5 @@ Matrix<float> KalmanFilter::get_estimate() {
 Matrix<float> KalmanFilter::get_estimate_uncertainty() {
   return estimated_uncertainty;
 }
+
+unsigned int KalmanFilter::get_system_states() { return system_states_; }

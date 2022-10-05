@@ -37,33 +37,38 @@ using namespace kalman::services;
                  MotionModel_Type_CONSTANT_VELOCITY) {
     motion_model = std::make_unique<Filter::ConstantVelocity>(*parameters);
   }
-  kalman_filter_x_ = std::make_unique<Filter::KalmanFilter>(
-      motion_model, initial_guess_system, initial_guess_uncertainty);
-  kalman_filter_y_ = std::make_unique<Filter::KalmanFilter>(
-      motion_model, initial_guess_system, initial_guess_uncertainty);
+  kalman_filter_instances_.push_back(std::make_unique<Filter::KalmanFilter>(
+      motion_model, initial_guess_system, initial_guess_uncertainty));
 
-  kalman_filter_x_->set_measurement_variance(request->measurement_variance());
-  kalman_filter_y_->set_measurement_variance(request->measurement_variance());
+  std::cout << "Done" << std::endl;
+
+  // kalman_filter_instances_.back()->set_mea
+
+  // kalman_filter_x_->set_measurement_variance(request->measurement_variance());
+  // kalman_filter_y_->set_measurement_variance(request->measurement_variance());
+  init_done_ = true;
   return grpc::Status::OK;
 }
 
 ::grpc::Status KalmanFilterImpl::Tick(::grpc::ServerContext *context,
                                       const TickRequest *request,
                                       TickResponse *response) {
+
+  if (init_done_ == false)
+    return ::grpc::Status::CANCELLED;
   std::cout << "tick" << std::endl;
-  Matrix<float> x_value = Matrix<float>(1, 1);
-  x_value(0, 0) = request->measurement().position().x();
-  Matrix<float> y_value = Matrix<float>(1, 1);
-  y_value(0, 0) = request->measurement().position().y();
-  kalman_filter_x_->tick(x_value);
-  kalman_filter_y_->tick(y_value);
+  auto &kalman_filter = kalman_filter_instances_.back();
 
-  float x_return = kalman_filter_x_->get_estimate()(0, 0);
-  float y_return = kalman_filter_y_->get_estimate()(0, 0);
+  Matrix<float> value = Matrix<float>(kalman_filter->get_system_states(), 1);
+  value(0, 0) = request->measurement().position().x();
 
-  kalman::data::XYPosition position = response->estimate().position();
-  position.set_x(x_return);
-  position.set_y(y_return);
+  kalman_filter->tick(value);
+  float estimate_f = kalman_filter->get_estimate()(0, 0);
+
+  kalman::data::Estimate estimate;
+  kalman::data::XYPosition *position = estimate.mutable_position();
+  position->set_x(estimate_f);
+  *response->mutable_estimate() = estimate;
   return grpc::Status::OK;
 }
 
@@ -71,11 +76,13 @@ using namespace kalman::services;
                                      const google::protobuf::Empty *request,
                                      TickResponse *response) {
   std::cout << "Get" << std::endl;
-  float x_return = kalman_filter_x_->get_estimate()(0, 0);
-  float y_return = kalman_filter_y_->get_estimate()(0, 0);
+  if (init_done_ == false)
+    return ::grpc::Status::CANCELLED;
+  float estimate_f = kalman_filter_instances_.back()->get_estimate()(0, 0);
 
-  kalman::data::XYPosition position = response->estimate().position();
-  position.set_x(x_return);
-  position.set_y(y_return);
+  kalman::data::Estimate estimate;
+  kalman::data::XYPosition *position = estimate.mutable_position();
+  position->set_x(estimate_f);
+  *response->mutable_estimate() = estimate;
   return grpc::Status::OK;
 }

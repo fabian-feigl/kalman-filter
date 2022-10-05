@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name="kalman_filter_proto",
-    version="0.0.0",
+    version="0.1.0",
     author="Fabian Feigl",
     long_description_content_type='text/markdown',
     packages=setuptools.find_packages(),

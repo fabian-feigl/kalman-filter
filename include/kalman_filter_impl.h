@@ -14,11 +14,11 @@ namespace services {
 
 class KalmanFilterImpl final : public KalmanFilterRPC::Service {
 private:
-  std::unique_ptr<Filter::KalmanFilter> kalman_filter_x_;
-  std::unique_ptr<Filter::KalmanFilter> kalman_filter_y_;
+  std::vector<std::unique_ptr<Filter::KalmanFilter>> kalman_filter_instances_;
+  bool init_done_;
 
 public:
-  explicit KalmanFilterImpl(){};
+  explicit KalmanFilterImpl() : init_done_(false){};
   ~KalmanFilterImpl(){};
 
   ::grpc::Status Create(::grpc::ServerContext *context,
