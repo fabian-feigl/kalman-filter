@@ -1,5 +1,7 @@
 find_package(Protobuf 3.0.0 REQUIRED)
 find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+find_program(_PROTOBUF_PROTOC protoc)
+
 
 # Protobuf Message files
 set(PROTOBUF_DEFS_DIR ${PROJECT_SOURCE_DIR}/protocol)
@@ -7,14 +9,14 @@ message(STATUS "foo include dir: ${PROTOBUF_DEFS_DIR}")
 
 # List of public protobuf sources
 set(PROTOBUF_SOURCES
-    kalman_filter/data/data.proto
-    kalman_filter/data/motion_model.proto
-    kalman_filter/services/kalman_filter.proto)
+    kalman/data/data.proto
+    kalman/data/motion_model.proto
+    kalman/services/kalman_filter.proto)
 set(PROTOBUF_GENERATED_CPP)
 set(PROTOBUF_GENERATED_HEADER)
 
 set(PROTOBUF_GRPC_SOURCES
-    kalman_filter/services/kalman_filter.proto)
+    kalman/services/kalman_filter.proto)
 set(PROTOBUF_GENERATED_GRPC_CPP)
 set(PROTOBUF_GENERATED_GRPC_HEADER)
 
@@ -62,6 +64,7 @@ add_library(kalman_filter_proto
 target_include_directories(kalman_filter_proto PRIVATE ${PROJECT_BINARY_DIR}/include)
 
 target_link_libraries(kalman_filter_proto
-  ${_REFLECTION}
-  ${_GRPC_GRPCPP}
-  ${_PROTOBUF_LIBPROTOBUF})
+  grpc++_reflection
+  grpc++
+  protobuf::libprotobuf
+  protoc)

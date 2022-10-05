@@ -1,20 +1,22 @@
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
-import "kalman_filter/data/data.proto";
-import "kalman_filter/data/motion_model.proto";
+package kalman.services;
 
-service KalmanFilter {
+import "google/protobuf/empty.proto";
+import "kalman/data/data.proto";
+import "kalman/data/motion_model.proto";
+
+service KalmanFilterRPC {
   rpc Create(CreateRequest) returns (google.protobuf.Empty);
   rpc Tick(TickRequest) returns (TickResponse);
   rpc Get(google.protobuf.Empty) returns (TickResponse);
 }
 
 message CreateRequest {
-  MotionModel motion_model = 1;
+  kalman.motion_model.MotionModel motion_model = 1;
   // variance in distance measurement.
   float measurement_variance = 2;
 }
 
-message TickRequest { Measurement measurement = 1; }
-message TickResponse { Estimate estimate = 1; }
+message TickRequest { kalman.data.Measurement measurement = 1; }
+message TickResponse { kalman.data.Estimate estimate = 1; }

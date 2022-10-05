@@ -1,9 +1,11 @@
 syntax = "proto3";
 
+package kalman.motion_model;
+
 message MotionModel {
   enum Type {
     CONSTANT_VELOCITY = 0;
-    CONSTANT_ACCELEARTION = 1;
+    CONSTANT_ACCELERATION = 1;
   }
   Type motion_model_type = 1;
   MotionModelParameters motion_model_parameters = 2;
