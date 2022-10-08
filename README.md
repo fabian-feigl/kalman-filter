@@ -15,6 +15,28 @@ make
 
 # Execute
 
-The `kalman_filter_main.cpp` is an exemplary application of the Kalman Filter. 
+## CPP example application
 
-CMake generates an executable in `build/src` called `kalman_filter`.
+The `kalman_filter_example.cpp` is an exemplary application to demonstrate the functionality of kalman filter library. 
+
+CMake generates an executable in `build/src` called `kalman_filter_example`.
+
+## Kalman Filter Server
+
+The repository offers a gRPC based kalman filter  microservice application.
+
+The gRPC server is generated as an executable in `build/src` called `kalman_filter_server`.
+
+In the `example` folder a Jupyter Notebook demonstrates the usage with `Python`.
+In order to get all necessary libraries for Protobuf and gRPC you have to install the pip package that is generated with CMake.
+
+```bash
+cd build/python/dist
+pip install kalman_filter_proto-*.tar.gz
+```
+
+
+
+
+
+

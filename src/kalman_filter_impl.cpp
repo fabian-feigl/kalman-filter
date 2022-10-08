@@ -65,12 +65,16 @@ using namespace kalman::services;
     value(0, 0) = request->measurement().value();
 
     kalman_filter->tick(value);
-    float estimate_f = kalman_filter->get_estimate()(0, 0);
+    float estimate_position = kalman_filter->get_estimate()(0, 0);
+    float estimate_velocity = kalman_filter->get_estimate()(1, 0);
+    float estimate_acceleration = kalman_filter->get_estimate()(2, 0);
 
     kalman::data::Estimate estimate;
-    estimate.set_value(estimate_f);
+    estimate.set_position(estimate_position);
+    estimate.set_velocity(estimate_velocity);
+    estimate.set_acceleration(estimate_acceleration);
     *response->mutable_estimate() = estimate;
-    std::cout << "ticked " << iterator->first << std::endl;
+    // std::cout << "ticked " << iterator->first << std::endl;
     return grpc::Status::OK;
   }
 }
@@ -87,12 +91,16 @@ using namespace kalman::services;
     return ::grpc::Status::CANCELLED;
   else {
     auto &kalman_filter = iterator->second;
-    float estimate_f = kalman_filter->get_estimate()(0, 0);
+    float estimate_position = kalman_filter->get_estimate()(0, 0);
+    float estimate_velocity = kalman_filter->get_estimate()(1, 0);
+    float estimate_acceleration = kalman_filter->get_estimate()(2, 0);
 
     kalman::data::Estimate estimate;
-    estimate.set_value(estimate_f);
+    estimate.set_position(estimate_position);
+    estimate.set_velocity(estimate_velocity);
+    estimate.set_acceleration(estimate_acceleration);
     *response->mutable_estimate() = estimate;
-    std::cout << "get " << iterator->first << std::endl;
+    // std::cout << "get " << iterator->first << std::endl;
     return grpc::Status::OK;
   }
 }

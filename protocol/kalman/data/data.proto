@@ -3,4 +3,8 @@ syntax = "proto3";
 package kalman.data;
 
 message Measurement { float value = 1; }
-message Estimate { float value = 1; }
+message Estimate {
+  float position = 1;
+  float velocity = 2;
+  float acceleration = 3;
+}
