@@ -9,14 +9,24 @@ import "kalman/data/motion_model.proto";
 service KalmanFilterRPC {
   rpc Create(CreateRequest) returns (google.protobuf.Empty);
   rpc Tick(TickRequest) returns (TickResponse);
-  rpc Get(google.protobuf.Empty) returns (TickResponse);
+  rpc Get(GetRequest) returns (TickResponse);
 }
 
 message CreateRequest {
-  kalman.motion_model.MotionModel motion_model = 1;
+  string identifier = 1;
+  kalman.motion_model.MotionModel motion_model = 2;
   // variance in distance measurement.
-  float measurement_variance = 2;
+  float measurement_variance = 3;
 }
 
-message TickRequest { kalman.data.Measurement measurement = 1; }
-message TickResponse { kalman.data.Estimate estimate = 1; }
+message TickRequest {
+  string identifier = 1;
+  kalman.data.Measurement measurement = 2;
+}
+
+message TickResponse {
+  string identifier = 1;
+  kalman.data.Estimate estimate = 2;
+}
+
+message GetRequest { string identifier = 1; }

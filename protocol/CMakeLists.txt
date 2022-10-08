@@ -116,4 +116,4 @@ add_custom_command(
     WORKING_DIRECTORY ${GENERATED_PY_DIR}
 )
 
-#add_custom_target(python_protocol ALL DEPENDS ${OUTPUT})
+add_custom_target(python_protocol ALL DEPENDS ${OUTPUT})

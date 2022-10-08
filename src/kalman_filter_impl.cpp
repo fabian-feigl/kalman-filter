@@ -37,52 +37,62 @@ using namespace kalman::services;
                  MotionModel_Type_CONSTANT_VELOCITY) {
     motion_model = std::make_unique<Filter::ConstantVelocity>(*parameters);
   }
-  kalman_filter_instances_.push_back(std::make_unique<Filter::KalmanFilter>(
-      motion_model, initial_guess_system, initial_guess_uncertainty));
+  kalman_filter_instances_[request->identifier()] =
+      (std::make_unique<Filter::KalmanFilter>(
+          motion_model, initial_guess_system, initial_guess_uncertainty));
 
-  std::cout << "Done" << std::endl;
+  kalman_filter_instances_[request->identifier()]->set_measurement_variance(
+      request->measurement_variance());
+  std::cout << request->identifier() << " successfully initialized"
+            << std::endl;
 
-  // kalman_filter_instances_.back()->set_mea
-
-  // kalman_filter_x_->set_measurement_variance(request->measurement_variance());
-  // kalman_filter_y_->set_measurement_variance(request->measurement_variance());
-  init_done_ = true;
   return grpc::Status::OK;
 }
 
 ::grpc::Status KalmanFilterImpl::Tick(::grpc::ServerContext *context,
                                       const TickRequest *request,
                                       TickResponse *response) {
+  std::unordered_map<std::string,
+                     std::unique_ptr<Filter::KalmanFilter>>::const_iterator
+      iterator = kalman_filter_instances_.find(request->identifier());
 
-  if (init_done_ == false)
+  if (iterator == kalman_filter_instances_.end())
     return ::grpc::Status::CANCELLED;
-  std::cout << "tick" << std::endl;
-  auto &kalman_filter = kalman_filter_instances_.back();
+  else {
+    auto &kalman_filter = iterator->second;
 
-  Matrix<float> value = Matrix<float>(kalman_filter->get_system_states(), 1);
-  value(0, 0) = request->measurement().position().x();
+    Matrix<float> value = Matrix<float>(kalman_filter->get_system_states(), 1);
+    value(0, 0) = request->measurement().value();
 
-  kalman_filter->tick(value);
-  float estimate_f = kalman_filter->get_estimate()(0, 0);
+    kalman_filter->tick(value);
+    float estimate_f = kalman_filter->get_estimate()(0, 0);
 
-  kalman::data::Estimate estimate;
-  kalman::data::XYPosition *position = estimate.mutable_position();
-  position->set_x(estimate_f);
-  *response->mutable_estimate() = estimate;
-  return grpc::Status::OK;
+    kalman::data::Estimate estimate;
+    estimate.set_value(estimate_f);
+    *response->mutable_estimate() = estimate;
+    std::cout << "ticked " << iterator->first << std::endl;
+    return grpc::Status::OK;
+  }
 }
 
 ::grpc::Status KalmanFilterImpl::Get(::grpc::ServerContext *context,
-                                     const google::protobuf::Empty *request,
+                                     const GetRequest *request,
                                      TickResponse *response) {
-  std::cout << "Get" << std::endl;
-  if (init_done_ == false)
-    return ::grpc::Status::CANCELLED;
-  float estimate_f = kalman_filter_instances_.back()->get_estimate()(0, 0);
 
-  kalman::data::Estimate estimate;
-  kalman::data::XYPosition *position = estimate.mutable_position();
-  position->set_x(estimate_f);
-  *response->mutable_estimate() = estimate;
-  return grpc::Status::OK;
+  std::unordered_map<std::string,
+                     std::unique_ptr<Filter::KalmanFilter>>::const_iterator
+      iterator = kalman_filter_instances_.find(request->identifier());
+
+  if (iterator == kalman_filter_instances_.end())
+    return ::grpc::Status::CANCELLED;
+  else {
+    auto &kalman_filter = iterator->second;
+    float estimate_f = kalman_filter->get_estimate()(0, 0);
+
+    kalman::data::Estimate estimate;
+    estimate.set_value(estimate_f);
+    *response->mutable_estimate() = estimate;
+    std::cout << "get " << iterator->first << std::endl;
+    return grpc::Status::OK;
+  }
 }

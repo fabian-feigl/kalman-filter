@@ -2,10 +2,5 @@ syntax = "proto3";
 
 package kalman.data;
 
-message XYPosition {
-  float x = 1;
-  float y = 2;
-}
-
-message Measurement { XYPosition position = 1; }
-message Estimate { XYPosition position = 1; }
+message Measurement { float value = 1; }
+message Estimate { float value = 1; }
